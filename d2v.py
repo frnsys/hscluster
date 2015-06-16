@@ -1,34 +1,39 @@
-import json
 import math
 import numpy as np
-from gensim.models import Phrases
 from gensim.models.doc2vec import Doc2Vec, LabeledSentence
 from gensim.models.word2vec import Vocab
-from nltk.tokenize import word_tokenize, sent_tokenize
-from sup.progress import Progress
+from nltk.tokenize import word_tokenize
 from nytnlp.clean import clean_doc
-from time import time
 from sklearn.cluster import KMeans
-from sklearn import metrics
+from kmeans import DetK
+from knowledge import phrases
 
-def d2v_cluster(emails, n_clusters=None):
-    # Vector reps
-    print('Loading d2v')
-    model = Doc2Vec.load('data/doc2vec/nyt_fulldoc.d2v')
-    print('Done Loading')
-    docs = [clean_doc(e) for e in emails]
 
-    sents = [s for s in _doc2vec_doc_stream(docs)]
-    n_sentences = add_new_labels(sents, model)
+print('Loading d2v and phrases models...')
+model = Doc2Vec.load('data/doc2vec/nyt_fulldoc.d2v')
+print('Done Loading')
 
-    # add new rows to model.syn0
+
+def d2v_cluster(docs, n_clusters=None):
+    """
+    Cluster based on doc2vec representations.
+
+    The doc2vec inference parts are adapted from:
+    <https://gist.github.com/zseder/4201551d7f8608f0b82b>
+    """
+
+    docs = [clean_doc(d) for d in docs]
+    docs = [d for d in _doc2vec_doc_stream(docs)]
+    n_docs = add_new_labels(docs, model)
+
+    # Add new rows to model.syn0
     n = model.syn0.shape[0]
     model.syn0 = np.vstack((
         model.syn0,
-        np.empty((n_sentences, model.layer1_size), dtype=np.float32)
+        np.empty((n_docs, model.layer1_size), dtype=np.float32)
     ))
 
-    for i in range(n, n + n_sentences):
+    for i in range(n, n + n_docs):
         np.random.seed(
             np.uint32(model.hashfxn(model.index2word[i] + str(model.seed))))
         a = (np.random.rand(model.layer1_size) - 0.5) / model.layer1_size
@@ -38,18 +43,18 @@ def d2v_cluster(emails, n_clusters=None):
     model.train_words = False
     model.train_lbls = True
 
-    # train
-    model.train(sents)
+    # Generate representations for the new documents.
+    model.train(docs)
     X = model.syn0[n:]
 
+    # Rule of thumb
     if n_clusters is None:
-        n_clusters = int(math.sqrt(len(emails)/2))
-    print('Looking for {0} clusters'.format(n_clusters))
+        dk = DetK(X)
+        n_clusters = dk.run(10)
+        print('Looking for {0} clusters'.format(n_clusters))
 
-    s = time()
     m = KMeans(n_clusters=n_clusters)
     labels = m.fit_predict(X)
-    print('Took {0:.2f} seconds'.format(time() - s))
 
     return labels
 
@@ -58,28 +63,19 @@ def _doc2vec_doc_stream(docs):
     """
     Generator to feed sentences to the dov2vec model.
     """
-    phrases = Phrases.load('data/bigram_model.phrases')
-
-    n = len(docs)
-    i = 0
-    p = Progress()
-    for doc in docs:
-        i += 1
-        p.print_progress(i/n)
-
-        # We do minimal pre-processing here so the model can learn
-        # punctuation
+    for i, doc in enumerate(docs):
         doc = doc.lower()
-
-        #for sent in sent_tokenize(doc):
-            #tokens = word_tokenize(sent)
-            #yield LabeledSentence(phrases[tokens], ['SENT_{}'.format(i)])
         tokens = word_tokenize(doc)
-        yield LabeledSentence(phrases[tokens], ['SENT_{}'.format(i)])
+        yield LabeledSentence(phrases[tokens], ['SENT_{}'.format(i+1)])
 
 
 # new labels to self.vocab
 def add_new_labels(sentences, model):
+    """
+    Add new labels (for new docs) to the doc2vec model's `self.vocab`.
+
+    from: <https://gist.github.com/zseder/4201551d7f8608f0b82b>
+    """
     sentence_no = -1
     total_words = 0
     vocab = model.vocab
@@ -103,27 +99,3 @@ def add_new_labels(sentences, model):
                 model.index2word.append(label)
                 n_sentences += 1
     return n_sentences
-
-
-def load_truth():
-    data = json.load(open('out.json', 'r'))
-
-    articles = []
-    labels = []
-    for i, e in enumerate(data):
-        for a in e['articles']:
-            articles.append(a['body'])
-            labels.append(i)
-
-    return articles, labels
-
-
-if __name__ == '__main__':
-    articles, true = load_truth()
-
-    pred = d2v_cluster(articles, n_clusters=10)
-
-    print('Completeness', metrics.completeness_score(true, pred))
-    print('Homogeneity', metrics.homogeneity_score(true, pred))
-    print('Adjusted Mutual Info', metrics.adjusted_mutual_info_score(true, pred))
-    print('Adjusted Rand', metrics.adjusted_rand_score(true, pred))

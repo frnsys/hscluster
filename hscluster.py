@@ -1,26 +1,23 @@
-import json
-from time import time
-import networkx as nx
 import numpy as np
-from sklearn import metrics
-
-from knowledge import IDF
-from models import Article
-from nytnlp.tokenize.keyword import keyword_tokenizes
-from gensim.models import Phrases
+import networkx as nx
+import matplotlib.pyplot as plt
 from sup.color import cprint
 from collections import defaultdict
-import matplotlib.pyplot as plt
+from nytnlp.tokenize.keyword import keyword_tokenizes
+from knowledge import IDF, phrases
+from models import Article
+from outliers import outliers
 
 
 idf = IDF('data/nyt_entities_idf.json')
 idf_reg = IDF('data/nyt_idf.json')
-bigram = Phrases.load('data/bigram_model.phrases')
 
 
-def load_truth(datafile):
-    data = json.load(open(datafile, 'r'))
-
+def preprocess(data):
+    """
+    Load ground truth clusters
+    and pre-process the articles.
+    """
     articles = []
     clusters = []
     labels = []
@@ -40,14 +37,14 @@ def load_truth(datafile):
         articles += arts
 
     docs = [a.body for a in articles]
-    toks = keyword_tokenizes(docs, phrases_model=bigram)
+    toks = keyword_tokenizes(docs, phrases_model=phrases)
     for i, a in enumerate(articles):
         a.tokens = set(toks[i])
 
     return clusters, articles, labels
 
 
-def build_graph(articles):
+def build_graph(articles, debug=True):
     """
     Build the graph out of the articles and their overlaps.
     """
@@ -60,30 +57,31 @@ def build_graph(articles):
         for a_ in articles:
             if a != a_:
                 intersect, e_weight, t_weight, score, token_score, total_score = similarity(a, a_)
-                print('ARTICLE', a_.title)
-                print('\tentity weight', e_weight)
-                print('\ttoken weight', t_weight)
-                print('\tfinal score', score)
-                print('\tfinal token score', token_score)
-                cprint('\ttotal score', total_score)
-                cprint('\tstatus', a_ in a.cocluster)
+                if debug:
+                    print('ARTICLE', a_.title)
+                    print('\tentity weight', e_weight)
+                    print('\ttoken weight', t_weight)
+                    print('\tfinal score', score)
+                    print('\tfinal token score', token_score)
+                    cprint('\ttotal score', total_score)
+                    cprint('\tstatus', a_ in a.cocluster)
                 a.overlaps.append((len(intersect), a_ in a.cocluster, intersect, a_, score, token_score, total_score))
                 if a_ in a.cocluster:
                     coclusters.append(score)
-        print('cocluster scores', coclusters)
-        print('num cocluster members', len(coclusters))
         overlaps = [TS for l, t, o, a_, s, ts, TS in a.overlaps]
-        print(overlaps)
-        oi = np.where(mad_based_outlier(np.array(overlaps)))
-        print(oi)
+        if debug:
+            print('cocluster scores', coclusters)
+            print('num cocluster members', len(coclusters))
+            print(overlaps)
         for i in outliers(overlaps):
             if a.overlaps[i][0] >= 5: # hard cutoff at at least 5 entity overlaps?
-                cprint('title', a.overlaps[i][3].title)
-                cprint('score', a.overlaps[i][4])
-                cprint('token score', a.overlaps[i][5])
-                cprint('total score', a.overlaps[i][6])
-                cprint('status', a.overlaps[i][1])
-                print([e.name for e in a.overlaps[i][2]])
+                if debug:
+                    cprint('title', a.overlaps[i][3].title)
+                    cprint('score', a.overlaps[i][4])
+                    cprint('token score', a.overlaps[i][5])
+                    cprint('total score', a.overlaps[i][6])
+                    cprint('status', a.overlaps[i][1])
+                    print([e.name for e in a.overlaps[i][2]])
                 graph.add_edge(a, a.overlaps[i][3], weight=a.overlaps[i][4])
 
     return graph
@@ -101,6 +99,8 @@ def similarity(a, a_):
     t_weight = (len(a.tokens) + len(a_.tokens) - abs(len(a.tokens) - len(a_.tokens)))/2
     raw_score = sum(idf[t] for t in intersect)
 
+    # Ran into an article with no entities
+    # (it was improperly extracted)
     try:
         e_weight_ = 1/e_weight
     except ZeroDivisionError:
@@ -113,46 +113,6 @@ def similarity(a, a_):
     return intersect, e_weight_, 1/t_weight, score, token_score, total_score
 
 
-def jump_outliers(values):
-    values = sorted(values)
-    diffs = [y-x for x,y in zip(values, values[1:])]
-
-    avg_diffs = []
-    for i in range(len(diffs)):
-        avg = sum(diffs[:i])/(i+1)
-        avg_diffs.append(diffs[i]/(avg+1))
-
-    return list(range(np.argmax(avg_diffs), len(values)))
-
-
-def outliers(values, thresh=2.):
-    # Quartiles
-    q = np.percentile(values, np.arange(0, 100, 25))
-    q1 = q[0]
-    q3 = q[2]
-    interquartile_range = q3 - q1
-    outlier_thresh = q3 + thresh * interquartile_range
-    print('\toutlier thresh', outlier_thresh)
-
-    return [i for i, v in enumerate(values) if v > outlier_thresh]
-
-
-def mad_based_outlier(points, thresh=2.5):
-    """
-    Source: <http://stackoverflow.com/a/22357811>
-    """
-    if len(points.shape) == 1:
-        points = points[:,None]
-    median = np.median(points, axis=0)
-    diff = np.sum((points - median)**2, axis=-1)
-    diff = np.sqrt(diff)
-    med_abs_deviation = np.median(diff)
-
-    modified_z_score = 0.6745 * diff / med_abs_deviation
-
-    return modified_z_score > thresh
-
-
 def visualize_graph(G):
     pos = nx.graphviz_layout(G, prog='fdp')
     edge_labels = dict([((u, v), '{:.2f}'.format(d['weight'])) for u, v, d in G.edges(data=True)])
@@ -162,7 +122,9 @@ def visualize_graph(G):
     plt.show()
 
 
-def cluster(articles, graph):
+def hs_cluster(data, debug=True):
+    clusters, articles, true_labels = preprocess(data)
+    G = build_graph(articles, debug=debug)
     cliques = list(nx.find_cliques(G))
 
     # Count how many cliques an article belongs to
@@ -205,19 +167,3 @@ def cluster(articles, graph):
                 break
 
     return pred_labels
-
-
-if __name__ == '__main__':
-    s = time()
-    clusters, articles, true_labels = load_truth('data/truth/out.json')
-    print('Took {:.2f}s'.format(time() - s))
-
-    #s = time()
-    G = build_graph(articles)
-    pred_labels = cluster(articles, G)
-    print('Took {:.2f}s'.format(time() - s))
-
-    print('Completeness', metrics.completeness_score(true_labels, pred_labels))
-    print('Homogeneity', metrics.homogeneity_score(true_labels, pred_labels))
-    print('Adjusted Mutual Info', metrics.adjusted_mutual_info_score(true_labels, pred_labels))
-    print('Adjusted Rand', metrics.adjusted_rand_score(true_labels, pred_labels))

@@ -3,6 +3,7 @@ from nytnlp.common import spacy
 # For more accurate timing, force spacy to load
 spacy('foo bar', entity=True, tag=True, parse=False)
 
+
 class Entity():
     def __init__(self, name, label):
         self.name = name.strip().lower()

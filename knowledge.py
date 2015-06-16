@@ -1,5 +1,9 @@
 import json
 import math
+from gensim.models import Phrases
+
+
+phrases = Phrases.load('data/bigram_model.phrases')
 
 
 class IDF():
