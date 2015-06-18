@@ -1,0 +1,18 @@
+Loading d2v and phrases models...
+Done Loading
+
+-------- dbscan_cluster
+Found 7 clusters
+Took 7.53 seconds
+Completeness 0.930692566979
+Homogeneity 0.256805359565
+Adjusted Mutual Info 0.121833043471
+Adjusted Rand 0.023120345363163063
+
+-------- hs_cluster
+Found 61 clusters
+Took 47.05 seconds
+Completeness 0.855988120154
+Homogeneity 0.968935568333
+Adjusted Mutual Info 0.550039444197
+Adjusted Rand 0.6506089504480617

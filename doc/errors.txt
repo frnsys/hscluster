@@ -1,0 +1,21 @@
+# Keeping track of what errors look like for 404'd articles. Could train a model to identify 404 pages?
+
+
+The item you've requested, /cgi-bin/article.cgi?f=/g/a/2011/08/16/bloomberg1376-LQ1AJF07SXKX01-0D1CU9E7BSITG1VAAMF0K7BK3Q.DTL, was not found.
+
+Possible causes:
+
+the address was entered incorrectly
+
+the item no longer exists, or
+
+there has been an error on the site.
+
+If you feel the address you entered is correct you can contact us, mentioning the error message received and the item you were trying to reach.
+
+We apologize for any inconvenience. From here, you can:
+
+
+---
+
+Sorry but we haven't been able to serve the page you requested - please try again\n\nIf you typed in a URL, please make sure you have typed it correctly.\n\nIn particular, make sure that the URL you typed is all in lower case.\n\nIf you think this article may be missing, please contact newsite@independent.co.uk stating the URL of this page.\n\nIf you require further assistance, please contact our help staff at the following address: userhelp@independent.co.uk

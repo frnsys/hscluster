@@ -1,0 +1,117 @@
+graph01_entity_intersect, 10.json
+Completeness 0.928777549074
+Homogeneity 0.952768389287
+Adjusted Mutual Info 0.836886142821
+Adjusted Rand 0.8230777212825569
+
+20.json
+Completeness 0.834727416584
+Homogeneity 0.972471522053
+Adjusted Mutual Info 0.531607280524
+Adjusted Rand 0.6031896568409237
+
+30.json
+Completeness 0.849155919057
+Homogeneity 0.962477535196
+Adjusted Mutual Info 0.52794038562
+Adjusted Rand 0.6286659203960067
+
+---
+
+graph02_entity_intersect_idf, 10.json
+Completeness 0.928777549074
+Homogeneity 0.952768389287
+Adjusted Mutual Info 0.836886161709
+Adjusted Rand 0.8230777212825569
+
+20.json
+Completeness 0.816517603812
+Homogeneity 0.97935364154
+Adjusted Mutual Info 0.467103866904
+Adjusted Rand 0.5757627061253513
+
+30.json
+Completeness 0.843445391561
+Homogeneity 0.942576736252
+Adjusted Mutual Info 0.516148947567
+Adjusted Rand 0.6017260446596409
+
+---
+
+graph03_entity_intersect_idf_lengthweighted, 10.json
+Completeness 0.955785345695
+Homogeneity 1.0
+Adjusted Mutual Info 0.897918181609
+Adjusted Rand 0.9489291598023064
+
+20.json
+Completeness 0.837554510195
+Homogeneity 0.97935364154
+Adjusted Mutual Info 0.538523966484
+Adjusted Rand 0.6275465158104706
+
+30.json
+Completeness 0.854853586653
+Homogeneity 0.968935568333
+Adjusted Mutual Info 0.545770974339
+Adjusted Rand 0.6568685087203605
+
+---
+
+graph04_entity_intersect_idf_lengthweighted_keywords, 10.json
+Completeness 0.905129008633
+Homogeneity 0.952768389287
+Adjusted Mutual Info 0.778398465792
+Adjusted Rand 0.7849749226336571
+
+20.json
+Completeness 0.857407271644
+Homogeneity 0.988833374021
+Adjusted Mutual Info 0.59840974251
+Adjusted Rand 0.7034019678961368
+
+30.json
+Completeness 0.841405852385
+Homogeneity 0.970437854773
+Adjusted Mutual Info 0.49594892783
+Adjusted Rand 0.6215445832809925
+
+---
+---
+---
+
+Completeness 0.838147563303
+Homogeneity 0.983638148032
+Adjusted Mutual Info 0.538530328303
+Adjusted Rand 0.6275465158104706
+
+30.json w/ squared entity idf
+Completeness 0.854820051938
+Homogeneity 0.974418014562
+Adjusted Mutual Info 0.543454145776
+Adjusted Rand 0.6569768074616632
+
+30.json w/ squared both idf
+Completeness 0.837467286809
+Homogeneity 0.957970675874
+Adjusted Mutual Info 0.487521785733
+Adjusted Rand 0.5991311423409509
+
+---
+
+30.json
+-------- dbscan_cluster
+Found 7 clusters
+Took 7.13 seconds
+Completeness 0.930692566979
+Homogeneity 0.256805359565
+Adjusted Mutual Info 0.121833043471
+Adjusted Rand 0.023120345363163063
+
+-------- hs_cluster
+Found 60 clusters
+Took 11.27 seconds
+Completeness 0.851028878863
+Homogeneity 0.953990516085
+Adjusted Mutual Info 0.538541528017
+Adjusted Rand 0.6289330500707273

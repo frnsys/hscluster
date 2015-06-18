@@ -1,0 +1,34 @@
+Loading d2v and phrases models...
+Done Loading
+
+-------- d2v_cluster
+Looking for 20 clusters
+Took 6.01 seconds
+Completeness 0.581053097392
+Homogeneity 0.565948283795
+Adjusted Mutual Info -0.0300723878699
+Adjusted Rand -0.013807861349517829
+
+-------- kmeans_cluster
+Looking for 16 clusters
+Took 12.08 seconds
+Completeness 0.968496787777
+Homogeneity 0.874300410247
+Adjusted Mutual Info 0.740319275014
+Adjusted Rand 0.7191200276830922
+
+-------- dbscan_cluster
+Found 16 clusters
+Took 0.52 seconds
+Completeness 0.958032101461
+Homogeneity 0.863789748619
+Adjusted Mutual Info 0.715324335082
+Adjusted Rand 0.5731624106880862
+
+-------- hs_cluster
+Found 35 clusters
+Took 4.42 seconds
+Completeness 0.867763886431
+Homogeneity 0.988833374021
+Adjusted Mutual Info 0.631527631188
+Adjusted Rand 0.7211494323224287
