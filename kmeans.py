@@ -54,7 +54,7 @@ def kmeans_cluster(docs, n_clusters=None):
 
     if n_clusters is None:
         dk = DetK(vecs)
-        n_clusters = dk.run(10)
+        n_clusters = dk.run(len(docs)//3 + 1) # assume 3 docs to a cluster is most likely
         print('Looking for {0} clusters'.format(n_clusters))
 
     m = KMeans(n_clusters=n_clusters)

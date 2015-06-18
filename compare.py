@@ -32,8 +32,8 @@ if __name__ == '__main__':
     true_n_clusters = max(true) + 1
 
     methods = [
-        (d2v_cluster, {'n_clusters': None}),
-        (kmeans_cluster, {'n_clusters': None}),
+        #(d2v_cluster, {'n_clusters': None}),
+        #(kmeans_cluster, {'n_clusters': None}),
         (dbscan_cluster, {'eps': None})
     ]
 
@@ -52,6 +52,7 @@ if __name__ == '__main__':
     print('\n--------', hs_cluster.__name__)
     s = time()
     pred = hs_cluster(data, debug=False)
+    print('Found {} clusters'.format(max(pred) + 1))
     print('Took {0:.2f} seconds'.format(time() - s))
 
     print('Completeness', metrics.completeness_score(true, pred))

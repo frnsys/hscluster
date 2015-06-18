@@ -39,7 +39,7 @@ def preprocess(data):
     docs = [a.body for a in articles]
     toks = keyword_tokenizes(docs, phrases_model=phrases)
     for i, a in enumerate(articles):
-        a.tokens = set(toks[i])
+        a.tokens = toks[i]
 
     return clusters, articles, labels
 
@@ -82,11 +82,12 @@ def build_graph(articles, debug=True):
                     cprint('total score', a.overlaps[i][6])
                     cprint('status', a.overlaps[i][1])
                     print([e.name for e in a.overlaps[i][2]])
-                graph.add_edge(a, a.overlaps[i][3], weight=a.overlaps[i][4])
+                graph.add_edge(a, a.overlaps[i][3], weight=a.overlaps[i][6])
 
     return graph
 
 
+from collections import Counter
 def similarity(a, a_):
     """
     Compute a similarity score for two articles.
@@ -94,10 +95,19 @@ def similarity(a, a_):
     es = set(a.entities)
     es_ = set(a_.entities)
     intersect = es & es_
-    token_intersect = a.tokens & a_.tokens
+    ent_freq = Counter(a.entities)
+    ent_freq_ = Counter(a_.entities)
+
+    toks = set(a.tokens)
+    toks_ = set(a_.tokens)
+    token_intersect = toks & toks_
     e_weight = (len(es) + len(es_) - abs(len(es) - len(es_)))/2
-    t_weight = (len(a.tokens) + len(a_.tokens) - abs(len(a.tokens) - len(a_.tokens)))/2
+    t_weight = (len(toks) + len(toks_) - abs(len(toks) - len(toks_)))/2
+    #e_weight = min(len(es), len(es_))
+    #t_weight = min(len(toks), len(toks_))
     raw_score = sum(idf[t] for t in intersect)
+    #raw_score = sum(idf[t] * (ent_freq[t] + ent_freq_[t]) for t in intersect)
+    #raw_score = sum(idf[t] * ((ent_freq[t] + ent_freq_[t])/2) for t in intersect)
 
     # Ran into an article with no entities
     # (it was improperly extracted)
@@ -107,7 +117,11 @@ def similarity(a, a_):
         e_weight_ = 0
     score = e_weight_ * raw_score
 
+    token_freq = Counter(a.tokens)
+    token_freq_ = Counter(a_.tokens)
     raw_token_score = sum(idf_reg[t] for t in token_intersect)
+    #raw_token_score = sum(idf_reg[t] * (token_freq[t] + token_freq_[t]) for t in token_intersect)
+    #raw_token_score = sum(idf_reg[t] * ((token_freq[t] + token_freq_[t])/2) for t in token_intersect)
     token_score = (1/t_weight) * raw_token_score
     total_score = token_score + score
     return intersect, e_weight_, 1/t_weight, score, token_score, total_score
@@ -166,4 +180,5 @@ def hs_cluster(data, debug=True):
                 pred_labels.append(i)
                 break
 
+    #print(cliques)
     return pred_labels

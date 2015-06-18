@@ -8,8 +8,7 @@ For manipulating text.
 
 import string
 
-from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer, HashingVectorizer
-from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Normalizer
 from nltk.tokenize import word_tokenize
@@ -18,7 +17,7 @@ from nltk.corpus import stopwords
 
 
 class Vectorizer():
-    def __init__(self, hash=False, min_df=0.015, max_df=0.9):
+    def __init__(self, min_df=0.015, max_df=0.9):
         """
         `min_df` is set to filter out extremely rare words,
         since we don't want those to dominate the distance metric.
@@ -27,19 +26,11 @@ class Vectorizer():
         since they don't convey much information.
         """
 
-        if hash:
-            args = [
-                ('vectorizer', HashingVectorizer(input='content', stop_words='english', lowercase=True, tokenizer=Tokenizer())),
-                ('tfidf', TfidfTransformer(norm=None, use_idf=True, smooth_idf=True)),
-                ('feature_reducer', TruncatedSVD(n_components=400)),
-                ('normalizer', Normalizer(copy=False))
-            ]
-        else:
-            args = [
-                ('vectorizer', CountVectorizer(input='content', stop_words='english', lowercase=True, tokenizer=Tokenizer(), min_df=min_df, max_df=max_df)),
-                ('tfidf', TfidfTransformer(norm=None, use_idf=True, smooth_idf=True)),
-                ('normalizer', Normalizer(copy=False))
-            ]
+        args = [
+            ('vectorizer', CountVectorizer(input='content', stop_words='english', lowercase=True, tokenizer=Tokenizer(), min_df=min_df, max_df=max_df)),
+            ('tfidf', TfidfTransformer(norm=None, use_idf=True, smooth_idf=True)),
+            ('normalizer', Normalizer(copy=False))
+        ]
 
         self.pipeline = Pipeline(args)
 
