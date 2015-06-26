@@ -19,15 +19,16 @@ class Entity():
         return '{} ({})'.format(self.name, self.label)
 
 
-class Article():
-    def __init__(self, id, body, title, cluster):
+class Document():
+    def __init__(self, id, body, tokens):
         self.id = id
         self.body = body
-        self.title = title
-        self.cluster = cluster
+        self.tokens = tokens
 
         res = spacy(body, entity=True, tag=True, parse=False)
         self.entities = [Entity(e.string, e.label_) for e in res.ents]
 
     def __repr__(self):
-        return '{}_{}'.format(self.cluster, self.id)
+        if hasattr(self, 'cluster'):
+            return '{}_{}'.format(self.cluster, self.id)
+        return '{}'.format(self.id)

@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 from scipy.spatial.distance import pdist, squareform
 from nytnlp.clean import clean_doc
-from text import Vectorizer
+from research.text import Vectorizer
 
 
 def dbscan_cluster(docs, eps=None):
@@ -16,7 +16,6 @@ def dbscan_cluster(docs, eps=None):
 
     m = DBSCAN(min_samples=3, metric='euclidean', eps=eps)
     labels = m.fit_predict(vecs)
-    print('Found {0} clusters'.format(max(labels) + 1))
     return labels
 
 

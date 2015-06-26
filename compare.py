@@ -1,46 +1,56 @@
-import sys
-import json
+import research
 from time import time
 from sklearn import metrics
-
-from d2v import d2v_cluster
-from kmeans import kmeans_cluster
-from dbscan import dbscan_cluster
-from hscluster import hs_cluster
-
-
-def load_truth(datafile):
-    data = json.load(open(datafile, 'r'))
-
-    articles = []
-    labels = []
-    for i, e in enumerate(data):
-        for a in e['articles']:
-            articles.append(a['body'])
-            labels.append(i)
-
-    return articles, labels, data
+from hscluster import hscluster
+from hscluster.preprocess import preprocess
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        datafile = sys.argv[1]
-    else:
-        datafile = 'data/truth/out.json'
-
-    articles, true, data = load_truth(datafile)
-    true_n_clusters = max(true) + 1
-
-    methods = [
-        #(d2v_cluster, {'n_clusters': None}),
-        #(kmeans_cluster, {'n_clusters': None}),
-        (dbscan_cluster, {'eps': None})
+    datafiles = [
+        'research/data/10E.json',
+        'research/data/20E.json',
+        'research/data/30E.json'
     ]
 
-    for method, kwargs in methods:
-        print('\n--------', method.__name__)
+    for datafile in datafiles:
+        print('\n{}'.format('-'*20))
+        print(datafile)
+        print('-'*20)
+
+        docs, true, data = research.load_truth(datafile)
+        true_n_clusters = max(true) + 1
+
+        methods = [
+            (research.dbscan_cluster, {'eps': None})
+        ]
+
+        # For larger number of clusters,
+        # the KMeans parameter estimation runs indefinitely
+        if true_n_clusters <= 20:
+            methods += [
+                (research.d2v_cluster, {'n_clusters': None}),
+                (research.kmeans_cluster, {'n_clusters': None}),
+            ]
+
+        for method, kwargs in methods:
+            print('\n--------', method.__name__)
+            s = time()
+            pred = method(docs, **kwargs)
+            print('Looking for {0} clusters'.format(true_n_clusters))
+            print('Found {} clusters'.format(max(pred) + 1))
+            print('Took {0:.2f} seconds'.format(time() - s))
+
+            print('Completeness', metrics.completeness_score(true, pred))
+            print('Homogeneity', metrics.homogeneity_score(true, pred))
+            print('Adjusted Mutual Info', metrics.adjusted_mutual_info_score(true, pred))
+            print('Adjusted Rand', metrics.adjusted_rand_score(true, pred))
+
+
+        print('\n--------', hscluster.__name__)
         s = time()
-        pred = method(articles, **kwargs)
+        pred = hscluster(docs)
+        print('Looking for {0} clusters'.format(true_n_clusters))
+        print('Found {} clusters'.format(max(pred) + 1))
         print('Took {0:.2f} seconds'.format(time() - s))
 
         print('Completeness', metrics.completeness_score(true, pred))
@@ -48,14 +58,11 @@ if __name__ == '__main__':
         print('Adjusted Mutual Info', metrics.adjusted_mutual_info_score(true, pred))
         print('Adjusted Rand', metrics.adjusted_rand_score(true, pred))
 
-
-    print('\n--------', hs_cluster.__name__)
-    s = time()
-    pred = hs_cluster(data, debug=False)
-    print('Found {} clusters'.format(max(pred) + 1))
-    print('Took {0:.2f} seconds'.format(time() - s))
-
-    print('Completeness', metrics.completeness_score(true, pred))
-    print('Homogeneity', metrics.homogeneity_score(true, pred))
-    print('Adjusted Mutual Info', metrics.adjusted_mutual_info_score(true, pred))
-    print('Adjusted Rand', metrics.adjusted_rand_score(true, pred))
+        # Print out hscluster cluster assignments
+        docs = preprocess(docs)
+        clusters = [[] for i in range(max(pred) + 1)]
+        for doc, cluster in zip(docs, true):
+            doc.cluster = cluster
+        for i, label in enumerate(pred):
+            clusters[label].append(docs[i])
+        print(clusters)

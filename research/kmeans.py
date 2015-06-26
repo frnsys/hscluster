@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.cluster import KMeans
 from nytnlp.clean import clean_doc
-from text import Vectorizer
+from research.text import Vectorizer
 
 
 class DetK():
@@ -55,7 +55,6 @@ def kmeans_cluster(docs, n_clusters=None):
     if n_clusters is None:
         dk = DetK(vecs)
         n_clusters = dk.run(len(docs)//3 + 1) # assume 3 docs to a cluster is most likely
-        print('Looking for {0} clusters'.format(n_clusters))
 
     m = KMeans(n_clusters=n_clusters)
     labels = m.fit_predict(vecs)

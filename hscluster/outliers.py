@@ -9,7 +9,7 @@ not the values themselves.
 import numpy as np
 
 
-def jump_outliers(values):
+def jump_outlier_indices(values):
     """
     Detect outliers by the first big "jump" in values.
 
@@ -28,7 +28,7 @@ def jump_outliers(values):
     return list(range(np.argmax(avg_diffs), len(values)))
 
 
-def outliers(values, thresh=2.):
+def outlier_indices(values, thresh=2.):
     """
     Detect outliers using the quartile method
     """
@@ -40,7 +40,7 @@ def outliers(values, thresh=2.):
     return [i for i, v in enumerate(values) if v > outlier_thresh]
 
 
-def mad_based_outlier(points, thresh=2.5):
+def mad_based_outlier_indices(points, thresh=2.5):
     """
     Source: <http://stackoverflow.com/a/22357811>
     """
