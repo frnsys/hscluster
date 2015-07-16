@@ -1,7 +1,7 @@
 # HS Clustering
 ### A clique-based approach to clustering news articles
 
-A write up is [available here](http://spaceandtim.es/etc/clustering_news_articles).
+A write up is [available here](http://spaceandtim.es/projects/clustering_news_articles).
 
 You can reproduce the results (to a degree - KMeans is stochastic) in the write-up by running:
 
