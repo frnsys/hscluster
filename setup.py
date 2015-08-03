@@ -12,6 +12,7 @@ setup(
     zip_safe=True,
     install_requires=[
         'numpy',
-        'networkx'
+        'broca',
+        'networkx',
     ],
 )

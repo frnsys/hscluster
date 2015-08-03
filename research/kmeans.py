@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.cluster import KMeans
-from nytnlp.clean import clean_doc
+from broca.preprocess.clean import clean
 from research.text import Vectorizer
 
 
@@ -49,7 +49,7 @@ class DetK():
 
 def kmeans_cluster(docs, n_clusters=None):
     vectr = Vectorizer()
-    docs = [clean_doc(d) for d in docs]
+    docs = [clean(d) for d in docs]
     vecs = vectr.vectorize(docs, train=True)
 
     if n_clusters is None:

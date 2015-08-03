@@ -1,13 +1,13 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 from scipy.spatial.distance import pdist, squareform
-from nytnlp.clean import clean_doc
+from broca.preprocess.clean import clean
 from research.text import Vectorizer
 
 
 def dbscan_cluster(docs, eps=None):
     vectr = Vectorizer()
-    docs = [clean_doc(d) for d in docs]
+    docs = [clean(d) for d in docs]
     vecs = vectr.vectorize(docs, train=True)
 
     if eps is None:

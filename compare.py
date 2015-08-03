@@ -1,10 +1,10 @@
 import research
 from research.text import Vectorizer
-from nytnlp.clean import clean_doc
 from time import time
 from sklearn import metrics
 from scipy.spatial.distance import pdist, squareform
 from hscluster import hscluster
+from broca.preprocess.clean import clean
 from hscluster.text import hscluster_docs
 from hscluster.preprocess import preprocess
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         print('\n--------', hscluster.__name__)
         s = time()
         vectr = Vectorizer()
-        cdocs = [clean_doc(d) for d in docs]
+        cdocs = [clean(d) for d in docs]
         vecs = vectr.vectorize(cdocs, train=True)
         sim_mat = pdist(vecs.todense())
         sim_mat = squareform(sim_mat)

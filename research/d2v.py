@@ -2,7 +2,7 @@ import numpy as np
 from gensim.models.doc2vec import Doc2Vec, LabeledSentence
 from gensim.models.word2vec import Vocab
 from nltk.tokenize import word_tokenize
-from nytnlp.clean import clean_doc
+from broca.preprocess.clean import clean
 from sklearn.cluster import KMeans
 from research.kmeans import DetK
 from hscluster.knowledge import phrases
@@ -21,7 +21,7 @@ def d2v_cluster(docs, n_clusters=None):
     <https://gist.github.com/zseder/4201551d7f8608f0b82b>
     """
 
-    docs = [clean_doc(d) for d in docs]
+    docs = [clean(d) for d in docs]
     docs = [d for d in _doc2vec_doc_stream(docs)]
     n_docs = add_new_labels(docs, model)
 
