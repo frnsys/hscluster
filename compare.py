@@ -1,7 +1,11 @@
 import research
+from research.text import Vectorizer
+from nytnlp.clean import clean_doc
 from time import time
 from sklearn import metrics
+from scipy.spatial.distance import pdist, squareform
 from hscluster import hscluster
+from hscluster.text import hscluster_docs
 from hscluster.preprocess import preprocess
 
 
@@ -48,7 +52,25 @@ if __name__ == '__main__':
 
         print('\n--------', hscluster.__name__)
         s = time()
-        pred = hscluster(docs)
+        vectr = Vectorizer()
+        cdocs = [clean_doc(d) for d in docs]
+        vecs = vectr.vectorize(cdocs, train=True)
+        sim_mat = pdist(vecs.todense())
+        sim_mat = squareform(sim_mat)
+        pred = hscluster(sim_mat)
+        print('Looking for {0} clusters'.format(true_n_clusters))
+        print('Found {} clusters'.format(max(pred) + 1))
+        print('Took {0:.2f} seconds'.format(time() - s))
+
+        print('Completeness', metrics.completeness_score(true, pred))
+        print('Homogeneity', metrics.homogeneity_score(true, pred))
+        print('Adjusted Mutual Info', metrics.adjusted_mutual_info_score(true, pred))
+        print('Adjusted Rand', metrics.adjusted_rand_score(true, pred))
+
+
+        print('\n--------', hscluster_docs.__name__)
+        s = time()
+        pred = hscluster_docs(docs)
         print('Looking for {0} clusters'.format(true_n_clusters))
         print('Found {} clusters'.format(max(pred) + 1))
         print('Took {0:.2f} seconds'.format(time() - s))

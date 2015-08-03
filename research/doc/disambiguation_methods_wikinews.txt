@@ -1,0 +1,56 @@
+on wikinews test sets
+
+---- sum of edge weights
+
+Looking for 10 clusters
+Found 13 clusters
+Took 2.57 seconds
+Completeness 0.900770152782
+Homogeneity 0.973197858922
+Adjusted Mutual Info 0.765530492179
+Adjusted Rand 0.8219618653801976
+
+
+Looking for 20 clusters
+Found 31 clusters
+Took 3.97 seconds
+Completeness 0.898031302611
+Homogeneity 0.988833374021
+Adjusted Mutual Info 0.723284837348
+Adjusted Rand 0.818755292365922
+
+
+Looking for 30 clusters
+Found 44 clusters
+Took 7.28 seconds
+Completeness 0.888137161172
+Homogeneity 0.952816188913
+Adjusted Mutual Info 0.666532649988
+Adjusted Rand 0.6930707692707209
+
+
+---- mean of edge weights
+
+Looking for 10 clusters
+Found 13 clusters
+Took 2.60 seconds
+Completeness 0.931912456987
+Homogeneity 1.0
+Adjusted Mutual Info 0.839738317484
+Adjusted Rand 0.9123203982350945
+
+Looking for 20 clusters
+Found 33 clusters
+Took 3.90 seconds
+Completeness 0.856412813909
+Homogeneity 0.970784628556
+Adjusted Mutual Info 0.602212183534
+Adjusted Rand 0.6562028373075761
+
+Looking for 30 clusters
+Found 67 clusters
+Took 7.05 seconds
+Completeness 0.822122190731
+Homogeneity 0.988059520634
+Adjusted Mutual Info 0.414276158582
+Adjusted Rand 0.5326708394645375

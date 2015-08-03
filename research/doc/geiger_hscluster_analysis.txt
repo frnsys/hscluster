@@ -1,0 +1,249 @@
+Dataset: climate_change_truth.txt
+
+Trying to apply hscluster to comment data.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Trying to determine if a particular clique disambiguation method is better.
+Was using sum of edge weights before to quantify strength of membership, but this favors cliques consisting of many edges, which is a problem if the outlier detection (or underlying similarity metric) fails to distinguish similarities worth forming edges for (worst case: it form edges between all nodes, so sum-of-edges clique disambiguation becomes ineffective).
+
+Mean-of-edges seems better since it is agnostic to the number of edges.
+
+It does seem slightly better, and for some reason it is much faster (maybe b/c mean is using numpy?).
+
+---------- Using auto-determined (IQR method) outlier threshold
+
+----- Disambiguating clique membership by sum of edge weights
+Looking for 10 clusters
+Found 19 clusters
+Took 21.58 seconds
+Completeness 0.567655886794
+Homogeneity 0.77644814098
+Adjusted Mutual Info -0.0167175863605
+Adjusted Rand -0.01543026706231454
+
+
+----- Disambiguating clique membership by mean of edge weights
+Looking for 10 clusters
+Found 20 clusters
+Took 0.27 seconds
+Completeness 0.587021888297
+Homogeneity 0.80801489264
+Adjusted Mutual Info 0.0193403765656
+Adjusted Rand 0.014645577035735212
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Trying some different methods for detecting outliers (e.g. similarities worth forming edges for). A problem was that some outlier thresholds were being calculated at 0, which means edges were drawn for every non-zero similarity. This isn't quite what we want. The methods here try incorporating the mean of values as a fallback threshold.
+
+The downsides to forming too many edges are that:
+
+- the graph is more complex and so clique identification will be slower
+- there will be more clique members to disambiguate, which will be slower
+- more possibility for incorrect clique disambiguation, given that there are more cliques (see above)
+
+---------- Disambiguating clique membership by mean of edge weights
+
+----- Using auto-determined (IQR method) outlier threshold
+
+Looking for 10 clusters
+Found 20 clusters
+Took 0.28 seconds
+Completeness 0.587021888297
+Homogeneity 0.80801489264
+Adjusted Mutual Info 0.0193403765656
+Adjusted Rand 0.014645577035735212
+
+
+----- Using auto-determined (IQR) method outlier threshold, but used mean value if it was > than the threshold
+
+Looking for 10 clusters
+Found 18 clusters
+Took 0.26 seconds
+Completeness 0.597698094032
+Homogeneity 0.77644814098
+Adjusted Mutual Info 0.0740255509985
+Adjusted Rand 0.053833605220228384
+
+
+
+----- Using auto-determined (IQR) method outlier threshold, but used mean value if the outlier threshold was 0
+
+Looking for 10 clusters
+Found 18 clusters
+Took 0.27 seconds
+Completeness 0.602068406156
+Homogeneity 0.790715205235
+Adjusted Mutual Info 0.0817504263379
+Adjusted Rand 0.06295264623955431
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+I suspect that the poor performance here is largely due to the similarity metric not accurately reflecting the similarity of documents.
+
+
+Here are the similarity matrices calculated for each cluster (with more than one member).
+The mean similarity of each cluster's similarity matrix is taken, then the mean of those means is computed.
+Then the similarity matrix for all documents is compared and the mean similarity from that is taken.
+Then both intra-cluster and overall similarity means are compared.
+If the similarity metric is good, we expect that the mean intra-cluster similarity is much higher than the overall similarity.
+
+Unfortunately, it isn't.
+
+Cluster 0
+[[ 0.          0.35549135  0.48000142  2.95862521  0.55143208  0.59904987
+   3.30455595  0.01253639]
+ [ 0.35549135  0.          0.          0.          0.13907838  0.29678752
+   0.09401023  0.31411157]
+ [ 0.48000142  0.          0.          0.          0.41897648  0.69948961
+   0.60144805  0.18707767]
+ [ 2.95862521  0.          0.          0.          0.          0.06534145
+   0.          0.30577724]
+ [ 0.55143208  0.13907838  0.41897648  0.          0.          0.55143208
+   0.47592938  0.        ]
+ [ 0.59904987  0.29678752  0.69948961  0.06534145  0.55143208  0.
+   0.3050449   0.04267197]
+ [ 3.30455595  0.09401023  0.60144805  0.          0.47592938  0.3050449
+   0.          0.10779994]
+ [ 0.01253639  0.31411157  0.18707767  0.30577724  0.          0.04267197
+   0.10779994  0.        ]]
+Mean sim: 0.402083398339
+-----
+Cluster 2
+[[ 0.          0.38713715  0.17838915  0.18065716  0.        ]
+ [ 0.38713715  0.          0.51755919  0.07745717  0.        ]
+ [ 0.17838915  0.51755919  0.          0.          0.0781846 ]
+ [ 0.18065716  0.07745717  0.          0.          0.30275411]
+ [ 0.          0.          0.0781846   0.30275411  0.        ]]
+Mean sim: 0.137771081433
+-----
+Cluster 3
+[[ 0.          4.20588943]
+ [ 4.20588943  0.        ]]
+Mean sim: 2.10294471728
+-----
+Cluster 4
+[[ 0.  0.]
+ [ 0.  0.]]
+Mean sim: 0.0
+-----
+Cluster 5
+[[ 0.          0.          0.481409    0.4077655 ]
+ [ 0.          0.          0.11208438  0.        ]
+ [ 0.481409    0.11208438  0.          0.39289498]
+ [ 0.4077655   0.          0.39289498  0.        ]]
+Mean sim: 0.174269232914
+-----
+Cluster 6
+[[ 0.          0.35074343]
+ [ 0.35074343  0.        ]]
+Mean sim: 0.175371713725
+-----
+Cluster 7
+[[ 0.          0.85229031]
+ [ 0.85229031  0.        ]]
+Mean sim: 0.426145153379
+-----
+Cluster 8
+[[ 0.          0.23831471]
+ [ 0.23831471  0.        ]]
+Mean sim: 0.119157353632
+-----
+Total mean sim 0.394482215603
+Co-cluster mean sim 0.442217831337
+
+
+Upon closer inspection, it seems to be because many of the comments are quite short so there isn't a whole lot of opportunity for overlap.
+The similarity metric does take into account document length, but it's not enough to counter that - there are often just too few meaningful terms.
+Sometimes synonymous-ish terms are used, e.g. "alternative energy" and "renewable energy". Could use the Google News word2vec model (w2v) here to collapse such terms, but it may not be worth the complication.
+
+
+
+Here is cluster 4, whose members have 0 similarity with each other:
+
+DOC: This attack on another base of employment by democrats is why what began in the last elections will be finished by 2016. I can't wait to participate.
+
+DOC: Nobody thinks the fossil fuel industry opposition to clean air has anything to do with jobs.  Establish new companies in these areas, and retrain miners to do those jobs.  Or put them to work fixing our roads and bridges, as in FDR's day.  Americans should be outraged that this is even an issue for the courts.  What a waste!  It's the air, stupid.
+
+Entities:
+{2016 (DATE)}
+{americans (NORP), fdr (GPE)}
+Entity overlap: set()
+Entity score: 0.0
+
+Tokens:
+{'wait', 'finish', 'attack', 'democrat', 'election', 'begin', 'base', 'employment', 'participate'}
+{'industry', 'fossil fuel', 'day', 'put', 'retrain', 'outrage', 'waste', 'nobody thinks', 'fuel', 'clean air', 'american', 'work', 'air', 'company', 'road', 'job', 'should be', 'area', 'stupid', 'fix', 'issue', 'opposition', 'court', 'miner', 'bridge', 'fdr', 'establish'}
+Token overlap: set()
+Token score: 0.0
+
+The first document is really short. The reason I had clustered these two together is because they both talk about employment/jobs. So I'm really only looking for a single term overlap which probably isn't enough for a significant similarity anyways.
+
+The w2v similarity between 'employment' and 'job' is 0.4939, and for 'employment' and 'work' is 0.2913. So it's not all that great anyways - this is just a really hard example.
+
+
+Cluster 3, on the other hand, has a strong similarity score, but is still not quite ideal:
+
+DOC: The headline of this article should be changed to "Obama's effort to Monetize Carbon Dioxide Heads to Court." How can something that we exhale be characterized as pollution? Secondly, no one really understands the impact of more carbon dioxide on the earth. The US is a small fraction of these gasses compared to China and India, who are not regulated. This is a scheme by the carbon credit mafia, led by Al Gore, to make money on selling carbon credits.  The EPA should be spending it's time regulating REAL pollution, like sulphur dioxide, excess fertilizer in the soil and runoff,  and solid waste recycling and composting.
+
+DOC: Strange how the United States has to implement these costly environmental reforms while China, India and Russia somehow continue to pollute at will and grow their economies exponentially. Like the Iran nuclear negotiations Obama doesn't mind at all that America is getting taken to the cleaners while other nations get a pass.
+
+Entities:
+{earth (LOC), china (GPE), india (GPE), us (GPE), epa (ORG), al gore (PERSON)}
+{the united states (GPE), china (GPE), america (GPE), india (GPE), russia (GPE), iran (GPE), obama (ORG)}
+Entity overlap: {china (GPE), india (GPE)}
+Entity score: 3.878038673919984
+
+Tokens:
+{'monetize', 'court', 'spend', 'exhale', 'time', 'composting', 'lead', 'head', 'carbon dioxide', 'fraction', 'mafia', 'real', 'earth', 'credit', 'sulphur dioxide', 'small fraction', 'effort', 'recycling', 'epa', 'waste', 'pollution', 'compare', 'china', 'carbon', 'carbon credits', 'understand', 'obama', 'impact', 'india', 'scheme', 'fertilizer', 'headline', 'gas', 'regulate', 'should be', 'soil', 'make', 'money', 'runoff', 'al gore', 'sell', 'characterize', 'solid waste', 'article', 'change', 'excess'}
+{'iran nuclear', 'state', 'reform', 'cleaner', 'exponentially', 'pas', 'implement', 'strange', 'costly', 'continue', 'china', 'economy', 'america', 'nation', 'united states', 'environmental', 'russia', 'grow', 'pollute', 'india'}
+Token overlap: {'india', 'china'}
+Token score: 0.3278507606345142
+
+Their whole similarity is predicated on two terms, "india" and "china". That is a bit too fragile. If we were using w2v, we might also pick up "reform" and "regulate", but they have low similarity (0.3136) and I worry that using w2v in this way will just introduce more noise.
+
+
+Here is cluster 6:
+
+DOC: So maybe you haven't heard that fossil fuels are a limited resource that will eventually run out. What are you going to do then, freeze in the dark? Alternative energy is both essential and inevitable. You don't have to be a dreaded Liberal, anyone who is half way intelligent plans for the future.
+
+DOC: Call me when so-called "renewable" energy sources can provide wide-spread, reliable, scalable power to a world that runs on electricity. Texas has some of the largest sun and wind power facilities in the world and they only provide a fraction of the electricity we generate. We have enough coal and natural gas to meet America's power needs for centuries. Fossil fuel deniers refuse to accept this very simple fact. Instead of wasting capital on marginal sources, we need to be figuring out how to use what works - coal and natural gas - in a more efficient manner. 
+
+Entities:
+{half (CARDINAL), liberal (GPE)}
+{america (GPE), texas (GPE), centuries (DATE)}
+[Entity overlap: set()
+Entity score: 0.0
+
+Tokens:
+{'alternative', 'dark', 'freeze', 'inevitable', 'intelligent', 'dread', 'energy', 'fossil fuels', 'future', 'limited', 'fuel', 'resource', 'essential', 'half', 'alternative energy', 'plan', 'liberal', 'run', 'eventually', 'hear'}
+{'facility', 'century', 'work', 'figuring out', 'manner', 'world', 'provide', 'fuel', 'meet', 'power', 'america', 'spread', 'figure', 'accept', 'fossil fuel', 'waste', 'fact', 'wide', 'energy', 'more efficient', 'we need', 'electricity', 'capital', 'scalable', 'simple', 'generate', 'natural gas', 'reliable', 'coal', 'run', 'large', 'fraction', 'marginal', 'refuse', 'wind power', 'renewable energy', 'sun', 'source', 'texas', 'call', 'denier'}
+Token overlap: {'energy', 'fuel', 'run'}
+Token score: 0.3507434274504704
+
+There's some overlap here, but again, not in a way that really captures why these two comments are similar. The fact that one commenter uses "alternative energy" and another uses "renewable energy" is why.
+
+Some thoughts: we could try computing semantic similarity of terms through a Wikipedia graph. But this would probably be really slow.
+
+Alternatively, we could try to train a better word2vec model - but I imagine it will be hard to beat the size of the google news dataset.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Perhaps these similarities are ok; perhaps the cliques that reflect true clusters will be stronger (in terms of mean edge weight, see above) than other cliques and we can successfully disambiguate-out the true cliques. So one question is - are the true clusters represented in the cliques that are formed? Unfortunately, no - many of the comments that should belong to the same clique do not.
+
+True clusters
+[[0_0, 0_2, 0_5, 0_8, 0_15, 0_20, 0_22, 0_25], [1_27], [2_11, 2_13, 2_16, 2_26, 2_28], [3_3, 3_7], [4_1, 4_12], [5_4, 5_9, 5_14, 5_23], [6_6, 6_10], [7_21, 7_24], [8_17, 8_19], [9_18]]
+
+Formed cliques
+[[2_26, 0_15, 1_27], [2_26, 0_15, 0_2], [2_26, 0_15, 8_19], [2_26, 5_23, 1_27], [2_26, 4_12], [2_26, 3_3, 1_27], [2_26, 3_3, 8_19], [2_26, 9_18, 1_27], [2_26, 9_18, 2_28], [2_26, 0_25, 5_9, 0_2], [2_26, 0_25, 5_9, 8_19], [2_26, 0_25, 1_27], [2_26, 0_25, 2_28, 8_19], [2_11, 5_23, 2_13, 0_22], [2_11, 5_23, 5_4, 6_10, 7_24, 6_6], [2_11, 5_23, 5_4, 6_10, 7_24, 5_14], [2_11, 5_23, 5_4, 6_10, 0_22], [2_11, 5_23, 5_4, 1_27, 0_22], [2_11, 5_23, 7_21, 7_24, 6_6], [2_11, 5_23, 7_21, 7_24, 5_14], [2_11, 5_23, 7_21, 1_27], [2_11, 0_0, 7_21, 1_27], [2_11, 0_0, 7_21, 5_14], [2_11, 0_0, 5_14, 4_1, 6_10, 5_4], [2_11, 0_0, 0_22, 0_15, 0_5, 2_13, 2_16], [2_11, 0_0, 0_22, 0_15, 1_27], [2_11, 0_0, 0_22, 0_15, 0_2], [2_11, 0_0, 0_22, 4_1, 6_10, 5_4], [2_11, 0_0, 0_22, 4_1, 6_10, 0_2], [2_11, 0_0, 0_22, 4_1, 1_27, 5_4], [2_11, 0_0, 0_22, 9_18, 1_27], [2_11, 6_6, 6_10, 4_1, 5_4], [2_11, 6_6, 6_10, 4_1, 0_2], [2_11, 3_7, 0_15, 0_5], [2_11, 3_7, 0_15, 1_27], [2_11, 3_7, 0_15, 8_19], [2_11, 3_7, 4_1, 1_27], [2_11, 8_19, 7_24], [2_28, 0_25, 0_22], [2_28, 0_25, 0_8, 8_19], [2_28, 0_0, 0_22, 9_18], [2_28, 0_0, 0_22, 2_16], [2_28, 0_0, 0_8], [0_8, 4_12], [5_9, 7_24, 7_21, 0_20], [5_9, 7_24, 7_21, 6_6], [5_9, 7_24, 7_21, 5_14], [5_9, 7_24, 8_19, 0_20], [5_9, 0_2, 0_20], [5_9, 0_2, 6_6], [5_9, 3_7, 0_20, 8_19], [3_3, 1_27, 3_7], [3_3, 6_6, 8_17], [3_3, 6_6, 7_24], [3_3, 8_19, 8_17], [3_3, 8_19, 7_24], [3_3, 8_19, 3_7], [0_25, 0_22, 0_5], [0_25, 0_22, 4_1, 6_10, 0_2], [0_25, 0_22, 4_1, 1_27], [8_17, 0_5], [0_20, 8_19, 0_15, 3_7], [0_20, 7_24, 6_10], [0_20, 0_0, 0_15, 0_5, 2_13, 2_16], [0_20, 0_0, 0_15, 0_2], [0_20, 0_0, 4_1, 6_10, 0_2], [0_20, 0_0, 7_21], [0_20, 3_7, 0_5, 0_15], [0_20, 3_7, 4_1]]
+
+
+
+
+
+
