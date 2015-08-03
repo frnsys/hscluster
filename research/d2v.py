@@ -5,11 +5,12 @@ from nltk.tokenize import word_tokenize
 from broca.preprocess.clean import clean
 from sklearn.cluster import KMeans
 from research.kmeans import DetK
-from hscluster.knowledge import phrases
+from broca.knowledge.phrases import Phrases
 
 
 print('Loading d2v and phrases models...')
-model = Doc2Vec.load('data/doc2vec/nyt_fulldoc.d2v')
+model = Doc2Vec.load('data/nyt/doc2vec/nyt.d2v')
+phrases = Phrases.load('data/nyt/bigram_model.phrases')
 print('Done Loading')
 
 
