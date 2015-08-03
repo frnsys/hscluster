@@ -1,12 +1,24 @@
 """
 A few different methods for detecting outliers.
 (we are concerned with only upper outliers)
-
-These methods return the _indices_ of the outlier values,
-not the values themselves.
 """
 
 import numpy as np
+
+
+def outlier_threshold(values, thresh=1.5):
+    """
+    Detect outliers using the quartile method
+    """
+    q = np.percentile(values, np.arange(0, 100, 25))
+    q1 = q[0]
+    q3 = q[2]
+    interquartile_range = q3 - q1
+    outlier_thresh = q3 + (thresh * interquartile_range)
+
+    mean = np.mean(values)
+    outlier_thresh = mean if outlier_thresh == 0 else outlier_thresh
+    return outlier_thresh
 
 
 def jump_outlier_indices(values):
@@ -28,15 +40,12 @@ def jump_outlier_indices(values):
     return list(range(np.argmax(avg_diffs), len(values)))
 
 
-def outlier_indices(values, thresh=2.):
+def outlier_indices(values, thresh=1.5, outlier_thresh=None):
     """
     Detect outliers using the quartile method
     """
-    q = np.percentile(values, np.arange(0, 100, 25))
-    q1 = q[0]
-    q3 = q[2]
-    interquartile_range = q3 - q1
-    outlier_thresh = q3 + thresh * interquartile_range
+    if outlier_thresh is None:
+        outlier_thresh = outlier_threshold(values, thresh=thresh)
     return [i for i, v in enumerate(values) if v > outlier_thresh]
 
 
